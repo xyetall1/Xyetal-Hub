@@ -5,7 +5,7 @@ local RunService = game:GetService("RunService")
 
 -- GUI Setup
 local gui = Instance.new("ScreenGui")
-gui.Name = "Arbix Hub"
+gui.Name = "Arbix Hub 🔱"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
@@ -21,7 +21,7 @@ Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
 
 -- Title
 local title = Instance.new("TextLabel")
-title.Text = "Arbix Hub"
+title.Text = "Arbix Hub 🔱"
 title.Size = UDim2.new(1, 0, 0, 40)
 title.BackgroundTransparency = 1
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
