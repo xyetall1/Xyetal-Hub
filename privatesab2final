@@ -1,5 +1,217 @@
+-- Put this in a LocalScript inside StarterGui
+local player = game.Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- GUI Setup
+local gui = Instance.new("ScreenGui")
+gui.Name = "Arbix Hub"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main Frame
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 400, 0, 270)
+main.Position = UDim2.new(0.5, -200, 0.5, -135)
+main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+main.Active = true
+main.Draggable = true
+main.Parent = gui
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Text = "Arbix Hub"
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.Parent = main
+
+-- Close and Minimize Buttons
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 14
+closeButton.Parent = main
+Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0, 6)
+
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+minimizeButton.Position = UDim2.new(1, -70, 0, 5)
+minimizeButton.Text = "-"
+minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 200)
+minimizeButton.Font = Enum.Font.GothamBold
+minimizeButton.TextSize = 14
+minimizeButton.Parent = main
+Instance.new("UICorner", minimizeButton).CornerRadius = UDim.new(0, 6)
+
+-- Minimized Frame
+local minimizedFrame = Instance.new("Frame")
+minimizedFrame.Size = UDim2.new(0, 140, 0, 40)
+minimizedFrame.Position = UDim2.new(0, 10, 1, -50)
+minimizedFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+minimizedFrame.Visible = false
+minimizedFrame.Parent = gui
+Instance.new("UICorner", minimizedFrame).CornerRadius = UDim.new(0, 8)
+
+local minimizedLabel = Instance.new("TextLabel")
+minimizedLabel.Text = "Zkai Hub"
+minimizedLabel.Size = UDim2.new(1, -40, 1, 0)
+minimizedLabel.Position = UDim2.new(0, 5, 0, 0)
+minimizedLabel.BackgroundTransparency = 1
+minimizedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizedLabel.Font = Enum.Font.GothamBold
+minimizedLabel.TextSize = 16
+minimizedLabel.Parent = minimizedFrame
+
+local restoreButton = Instance.new("TextButton")
+restoreButton.Size = UDim2.new(0, 30, 0, 30)
+restoreButton.Position = UDim2.new(1, -35, 0.5, -15)
+restoreButton.Text = "▢"
+restoreButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+restoreButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+restoreButton.Font = Enum.Font.GothamBold
+restoreButton.TextSize = 14
+restoreButton.Parent = minimizedFrame
+Instance.new("UICorner", restoreButton).CornerRadius = UDim.new(0, 6)
+
+-- Tab Bar
+local tabBar = Instance.new("Frame")
+tabBar.Size = UDim2.new(0, 100, 1, -40)
+tabBar.Position = UDim2.new(0, 0, 0, 40)
+tabBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+tabBar.Parent = main
+Instance.new("UICorner", tabBar).CornerRadius = UDim.new(0, 10)
+
+-- Content Area
+local contentFrame = Instance.new("Frame")
+contentFrame.Size = UDim2.new(1, -100, 1, -40)
+contentFrame.Position = UDim2.new(0, 100, 0, 40)
+contentFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+contentFrame.Parent = main
+Instance.new("UICorner", contentFrame).CornerRadius = UDim.new(0, 10)
+
+-- Tabs Setup
+local tabs = {}
+
+local function createTab(name, order)
+	local btn = Instance.new("TextButton")
+	btn.Text = name
+	btn.Size = UDim2.new(1, 0, 0, 40)
+	btn.Position = UDim2.new(0, 0, 0, 40 * (order - 1))
+	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.Font = Enum.Font.Gotham
+	btn.TextSize = 14
+	btn.Parent = tabBar
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+	local page = Instance.new("Frame")
+	page.Name = name .. "Page"
+	page.Size = UDim2.new(1, 0, 1, 0)
+	page.BackgroundTransparency = 1
+	page.Visible = false
+	page.Parent = contentFrame
+
+	tabs[name] = {button = btn, page = page}
+
+	btn.MouseButton1Click:Connect(function()
+		for _, tab in pairs(tabs) do
+			tab.page.Visible = false
+		end
+		page.Visible = true
+	end)
+
+	return page
+end
+
+-- Auto Farm Tab
+local autoFarmPage = createTab("Auto Farm", 1)
+autoFarmPage.Visible = true
+
+local autoCollect = false
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 220, 0, 50)
+toggleButton.Position = UDim2.new(0.5, -110, 0.25, 0)
+toggleButton.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+toggleButton.Text = "Auto Collect Money: OFF"
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextSize = 16
+toggleButton.Parent = autoFarmPage
+Instance.new("UICorner", toggleButton).CornerRadius = UDim.new(0, 8)
+
+toggleButton.MouseButton1Click:Connect(function()
+	autoCollect = not autoCollect
+	toggleButton.Text = autoCollect and "Auto Collect Money: ON" or "Auto Collect Money: OFF"
+	toggleButton.BackgroundColor3 = autoCollect and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(70, 130, 255)
+
+	if autoCollect then
+		task.spawn(function()
+			while autoCollect do
+				for i = 1, 16 do
+					if not autoCollect then break end
+					pcall(function()
+						game:GetService("ReplicatedStorage")
+							:WaitForChild("Packages")
+							:WaitForChild("Net")
+							:WaitForChild("RE/PlotService/ClaimCoins")
+							:FireServer(i)
+					end)
+					wait(0.2)
+				end
+			end
+		end)
+	end
+end)
+
+-- Stealing Tab
+local stealingPage = createTab("Stealing", 2)
+
+local stealButton = Instance.new("TextButton")
+stealButton.Size = UDim2.new(0, 220, 0, 50)
+stealButton.Position = UDim2.new(0.5, -110, 0.4, 0)
+stealButton.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+stealButton.Text = "Steal Now"
+stealButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+stealButton.Font = Enum.Font.GothamBold
+stealButton.TextSize = 18
+stealButton.Parent = stealingPage
+Instance.new("UICorner", stealButton).CornerRadius = UDim.new(0, 8)
+
+local wipLabel = Instance.new("TextLabel")
+wipLabel.Text = "WORK IN PROGRESS"
+wipLabel.Size = UDim2.new(1, 0, 0, 30)
+wipLabel.Position = UDim2.new(0, 0, 0.8, 0)
+wipLabel.BackgroundTransparency = 1
+wipLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+wipLabel.Font = Enum.Font.GothamBold
+wipLabel.TextSize = 16
+wipLabel.Parent = stealingPage
+
+-- Misc Tab (WalkSpeed)
+local miscPage = createTab("Misc", 3)
+
 local wsEnabled = false
 local HumanModCons = {}
+
+local walkSpeedToggle = Instance.new("TextButton")
+walkSpeedToggle.Size = UDim2.new(0, 220, 0, 50)
+walkSpeedToggle.Position = UDim2.new(0.5, -110, 0.3, 0)
+walkSpeedToggle.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+walkSpeedToggle.Text = "WalkSpeed: OFF"
+walkSpeedToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+walkSpeedToggle.Font = Enum.Font.GothamBold
+walkSpeedToggle.TextSize = 16
+walkSpeedToggle.Parent = miscPage
+Instance.new("UICorner", walkSpeedToggle).CornerRadius = UDim.new(0, 8)
 
 local function isNumber(n)
 	return type(n) == "number"
@@ -26,7 +238,12 @@ walkSpeedToggle.MouseButton1Click:Connect(function()
 		if HumanModCons.wsLoop then
 			HumanModCons.wsLoop:Disconnect()
 		end
-		HumanModCons.wsLoop = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid"):GetPropertyChangedSignal("WalkSpeed"):Connect(WalkSpeedChange)
+		if player.Character then
+			local human = player.Character:FindFirstChildWhichIsA("Humanoid")
+			if human then
+				HumanModCons.wsLoop = human:GetPropertyChangedSignal("WalkSpeed"):Connect(WalkSpeedChange)
+			end
+		end
 
 		if HumanModCons.wsCA then
 			HumanModCons.wsCA:Disconnect()
@@ -41,7 +258,6 @@ walkSpeedToggle.MouseButton1Click:Connect(function()
 		end)
 
 	else
-		-- Disable speed override, reset to 16 and disconnect connections
 		if HumanModCons.wsLoop then
 			HumanModCons.wsLoop:Disconnect()
 			HumanModCons.wsLoop = nil
@@ -54,4 +270,122 @@ walkSpeedToggle.MouseButton1Click:Connect(function()
 			player.Character:FindFirstChildWhichIsA("Humanoid").WalkSpeed = 16
 		end
 	end
+end)
+
+-- Visuals Tab (ESP)
+local visualsPage = createTab("Visuals", 4)
+
+local espEnabled = false
+local espBoxes = {}
+local espNames = {}
+
+local function createESPBox(player)
+	if espBoxes[player] then return end
+	local box = Instance.new("BoxHandleAdornment")
+	box.Name = "ESPBox"
+	box.Adornee = nil
+	box.AlwaysOnTop = true
+	box.ZIndex = 10
+	box.Transparency = 0.7
+	box.Color3 = Color3.new(1,1,1)
+	box.Size = Vector3.new(4, 5, 4)
+	box.Parent = workspace.CurrentCamera
+	espBoxes[player] = box
+
+	local nameTag = Instance.new("BillboardGui")
+	nameTag.Name = "ESPName"
+	nameTag.Adornee = nil
+	nameTag.AlwaysOnTop = true
+	nameTag.Size = UDim2.new(0, 100, 0, 20)
+	nameTag.StudsOffset = Vector3.new(0, 3, 0)
+	nameTag.Parent = workspace.CurrentCamera
+
+	local textLabel = Instance.new("TextLabel")
+	textLabel.Size = UDim2.new(1, 0, 1, 0)
+	textLabel.BackgroundTransparency = 1
+	textLabel.TextColor3 = Color3.new(1,1,1)
+	textLabel.TextStrokeColor3 = Color3.new(0,0,0)
+	textLabel.TextStrokeTransparency = 0
+	textLabel.Font = Enum.Font.Gotham
+	textLabel.TextSize = 14
+	textLabel.Text = player.Name
+	textLabel.Parent = nameTag
+
+	espNames[player] = nameTag
+end
+
+local function removeESP(player)
+	if espBoxes[player] then
+		espBoxes[player]:Destroy()
+		espBoxes[player] = nil
+	end
+	if espNames[player] then
+		espNames[player]:Destroy()
+		espNames[player] = nil
+	end
+end
+
+local function updateESP()
+	for _, plr in pairs(game.Players:GetPlayers()) do
+		if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChildWhichIsA("Humanoid") and plr.Character:FindFirstChildWhichIsA("Humanoid").Health > 0 then
+			if espEnabled then
+				if not espBoxes[plr] then
+					createESPBox(plr)
+				end
+				local hrp = plr.Character.HumanoidRootPart
+				espBoxes[plr].Adornee = hrp
+				espBoxes[plr].Size = Vector3.new(4, 5, 4)
+
+				espNames[plr].Adornee = hrp
+				espNames[plr].StudsOffset = Vector3.new(0, 3, 0)
+			else
+				removeESP(plr)
+			end
+		else
+			removeESP(plr)
+		end
+	end
+end
+
+local espToggle = Instance.new("TextButton")
+espToggle.Size = UDim2.new(0, 220, 0, 50)
+espToggle.Position = UDim2.new(0.5, -110, 0.3, 0)
+espToggle.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+espToggle.Text = "ESP: OFF"
+espToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+espToggle.Font = Enum.Font.GothamBold
+espToggle.TextSize = 16
+espToggle.Parent = visualsPage
+Instance.new("UICorner", espToggle).CornerRadius = UDim.new(0, 8)
+
+espToggle.MouseButton1Click:Connect(function()
+	espEnabled = not espEnabled
+	espToggle.Text = espEnabled and "ESP: ON" or "ESP: OFF"
+	espToggle.BackgroundColor3 = espEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(70, 130, 255)
+	if not espEnabled then
+		for plr, _ in pairs(espBoxes) do
+			removeESP(plr)
+		end
+	end
+end)
+
+RunService.RenderStepped:Connect(function()
+	if espEnabled then
+		updateESP()
+	end
+end)
+
+-- Close and Minimize Buttons Logic
+closeButton.MouseButton1Click:Connect(function()
+	gui.Enabled = false
+end)
+
+minimizeButton.MouseButton1Click:Connect(function()
+	main.Visible = false
+	minimizedFrame.Visible = true
+end)
+
+restoreButton.MouseButton1Click:Connect(function()
+	main.Visible = true
+	minimizedFrame.Visible = false
 end)
