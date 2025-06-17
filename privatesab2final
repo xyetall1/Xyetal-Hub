@@ -1,0 +1,57 @@
+local wsEnabled = false
+local HumanModCons = {}
+
+local function isNumber(n)
+	return type(n) == "number"
+end
+
+walkSpeedToggle.MouseButton1Click:Connect(function()
+	wsEnabled = not wsEnabled
+	walkSpeedToggle.Text = wsEnabled and "WalkSpeed: ON" or "WalkSpeed: OFF"
+	walkSpeedToggle.BackgroundColor3 = wsEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(70, 130, 255)
+
+	if wsEnabled then
+		local speed = 50
+
+		local function WalkSpeedChange()
+			local Char = player.Character or workspace:FindFirstChild(player.Name)
+			local Human = Char and Char:FindFirstChildWhichIsA("Humanoid")
+			if Char and Human then
+				Human.WalkSpeed = speed
+			end
+		end
+
+		WalkSpeedChange()
+
+		if HumanModCons.wsLoop then
+			HumanModCons.wsLoop:Disconnect()
+		end
+		HumanModCons.wsLoop = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid"):GetPropertyChangedSignal("WalkSpeed"):Connect(WalkSpeedChange)
+
+		if HumanModCons.wsCA then
+			HumanModCons.wsCA:Disconnect()
+		end
+		HumanModCons.wsCA = player.CharacterAdded:Connect(function(nChar)
+			local Human = nChar:WaitForChild("Humanoid")
+			WalkSpeedChange()
+			if HumanModCons.wsLoop then
+				HumanModCons.wsLoop:Disconnect()
+			end
+			HumanModCons.wsLoop = Human:GetPropertyChangedSignal("WalkSpeed"):Connect(WalkSpeedChange)
+		end)
+
+	else
+		-- Disable speed override, reset to 16 and disconnect connections
+		if HumanModCons.wsLoop then
+			HumanModCons.wsLoop:Disconnect()
+			HumanModCons.wsLoop = nil
+		end
+		if HumanModCons.wsCA then
+			HumanModCons.wsCA:Disconnect()
+			HumanModCons.wsCA = nil
+		end
+		if player.Character and player.Character:FindFirstChildWhichIsA("Humanoid") then
+			player.Character:FindFirstChildWhichIsA("Humanoid").WalkSpeed = 16
+		end
+	end
+end)
