@@ -62,7 +62,7 @@ minimizedFrame.Parent = gui
 Instance.new("UICorner", minimizedFrame).CornerRadius = UDim.new(0, 8)
 
 local minimizedLabel = Instance.new("TextLabel")
-minimizedLabel.Text = "Zkai Hub"
+minimizedLabel.Text = "Arbix Hub 🔱"
 minimizedLabel.Size = UDim2.new(1, -40, 1, 0)
 minimizedLabel.Position = UDim2.new(0, 5, 0, 0)
 minimizedLabel.BackgroundTransparency = 1
