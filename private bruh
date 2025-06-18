@@ -1,0 +1,495 @@
+-- Services
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Fluent UI Library
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+-- Player references
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- Mobile check
+local IsOnMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+
+-- Create mobile button if on mobile
+if IsOnMobile then
+    local mobileGui = Instance.new("ScreenGui")
+    mobileGui.Name = "MobileControlGui"
+    mobileGui.Parent = game:GetService("CoreGui")
+    mobileGui.ResetOnSpawn = false
+    
+    local button = Instance.new("ImageButton")
+    button.Name = "MobileActionButton"
+    button.Size = UDim2.new(0, 100, 0, 100)
+    button.Position = UDim2.new(1, -110, 1, -110)
+    button.AnchorPoint = Vector2.new(1, 1)
+    button.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+    button.Image = "rbxassetid://72694772464434"
+    button.BackgroundTransparency = 1
+    button.ScaleType = Enum.ScaleType.Fit
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.25, 0)
+    corner.Parent = button
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(255, 255, 255)
+    stroke.Thickness = 3
+    stroke.Parent = button
+    
+    button.Parent = mobileGui
+    
+    local function animatePress()
+        TweenService:Create(button, TweenInfo.new(0.1), {
+            Size = UDim2.new(0, 90, 0, 90),
+            ImageTransparency = 0.3
+        }):Play()
+    end
+    
+    local function animateRelease()
+        TweenService:Create(button, TweenInfo.new(0.1), {
+            Size = UDim2.new(0, 100, 0, 100),
+            ImageTransparency = 0
+        }):Play()
+    end
+    
+    button.MouseButton1Down:Connect(function()
+        animatePress()
+        keypress(0xA1,0xA2) -- RightShift key
+    end)
+    
+    button.MouseButton1Up:Connect(function()
+        animateRelease()
+        keyrelease(0xA1,0xA2) -- RightShift key
+    end)
+    
+    local dragInput, dragStart, startPos
+    button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            dragStart = input.Position
+            startPos = button.Position
+        end
+    end)
+    
+    button.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input == dragInput then
+            local delta = input.Position - dragStart
+            button.Position = UDim2.new(
+                startPos.X.Scale, 
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
+-- Create Fluent UI Window
+local Window = Fluent:CreateWindow({
+    Title = "ArbixHub🔱",
+    SubTitle = "by Touka, Zkai8211",
+    TabWidth = 100,
+    Size = UDim2.fromOffset(580, 500),
+    Acrylic = false,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.RightShift
+})
+
+-- Tabs
+local Tabs = {
+    AutoFarm = Window:AddTab({ Title = "Auto Farm", Icon = "" }),
+    Shop = Window:AddTab({ Title = "Shop", Icon = "shopping-cart" }),
+    Misc = Window:AddTab({ Title = "Misc", Icon = "" }),
+    Visuals = Window:AddTab({ Title = "Visuals", Icon = "" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+
+local Options = Fluent.Options
+
+-- Auto Farm Tab
+do
+    local autoCollect = false
+    Tabs.AutoFarm:AddToggle("AutoCollectToggle", {
+        Title = "Auto Collect Money",
+        Default = false,
+        Callback = function(value)
+            autoCollect = value
+            if autoCollect then
+                task.spawn(function()
+                    while autoCollect do
+                        for i = 1, 16 do
+                            if not autoCollect then break end
+                            pcall(function()
+                                ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Net"):WaitForChild("RE/PlotService/ClaimCoins"):FireServer(i)
+                            end)
+                            task.wait(0.2)
+                        end
+                    end
+                end)
+            end
+        end
+    })
+end
+
+-- Shop Tab
+do
+    local allItems = {
+        -- Slap Weapons
+        {Name = "Slap", ID = "Basic Slap"},
+        {Name = "Iron Slap", ID = "Iron Slap"},
+        {Name = "Gold Slap", ID = "Gold Slap"},
+        {Name = "Diamond Slap", ID = "Diamond Slap"},
+        {Name = "Emerald Slap", ID = "Emerald Slap"},
+        {Name = "Ruby Slap", ID = "Ruby Slap"},
+        {Name = "Dark Matter Slap", ID = "Dark Matter Slap"},
+        {Name = "Flame Slap", ID = "Flame Slap"},
+        {Name = "Nuclear Slap", ID = "Nuclear Slap"},
+        {Name = "Galaxy Slap", ID = "Galaxy Slap"},
+        
+        -- Special Items
+        {Name = "Trap", ID = "Trap"},
+        {Name = "Bee Launcher", ID = "Bee Launcher"},
+        {Name = "Rage Table", ID = "Rage Table"},
+        {Name = "Grapple Hook", ID = "Grapple Hook"},
+        {Name = "Taser Gun", ID = "Taser Gun"},
+        {Name = "Boogie Bomb", ID = "Boogie Bomb"},
+        {Name = "Medusa's Head", ID = "Medusa's Head"},
+        {Name = "Web Slinger", ID = "Web Slinger"},
+        {Name = "Quantum Cloner", ID = "Quantum Cloner"},
+        {Name = "All Seeing Sentry", ID = "All Seeing Sentry"},
+        {Name = "Laser Cape", ID = "Laser Cape"},
+        
+        -- Movement Items
+        {Name = "Speed Coil", ID = "Speed Coil"},
+        {Name = "Gravity Coil", ID = "Gravity Coil"},
+        {Name = "Coil Combo", ID = "Coil Combo"},
+        {Name = "Invisibility Cloak", ID = "Invisibility Cloak"}
+    }
+
+    -- Create dropdown values
+    local dropdownValues = {}
+    for _, item in pairs(allItems) do
+        table.insert(dropdownValues, item.Name)
+    end
+
+    -- Create the dropdown
+    local ItemsDropdown = Tabs.Shop:AddDropdown("ItemsDropdown", {
+        Title = "Select Item to Purchase",
+        Values = dropdownValues,
+        Multi = false,
+        Default = nil,
+    })
+
+    -- Handle item selection
+    ItemsDropdown:OnChanged(function(selected)
+        for _, item in pairs(allItems) do
+            if selected == item.Name then
+                local success, err = pcall(function()
+                    game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Net"):WaitForChild("RF/CoinsShopService/RequestBuy"):InvokeServer(item.ID)
+                end)
+                
+                Fluent:Notify({
+                    Title = success and "Purchase Attempted" or "Purchase Failed",
+                    Content = success and ("Tried to buy: "..item.Name) or ("Error: "..tostring(err)),
+                    Duration = 3
+                })
+                break
+            end
+        end
+    end)
+end
+
+-- Misc Tab
+do
+    -- WalkSpeed
+    local walkSpeedToggle = false
+    local HumanModCons = {}
+    
+    local function setWalkSpeed(speed)
+        if typeof(speed) == "number" then
+            local Char = player.Character or workspace:FindFirstChild(player.Name)
+            local Human = Char and Char:FindFirstChildWhichIsA("Humanoid")
+            
+            local function WalkSpeedChange()
+                if Char and Human then
+                    Human.WalkSpeed = speed
+                end
+            end
+            
+            WalkSpeedChange()
+            
+            if HumanModCons.wsLoop then
+                HumanModCons.wsLoop:Disconnect()
+            end
+            if HumanModCons.wsCA then
+                HumanModCons.wsCA:Disconnect()
+            end
+            
+            if Human then
+                HumanModCons.wsLoop = Human:GetPropertyChangedSignal("WalkSpeed"):Connect(WalkSpeedChange)
+            end
+            
+            HumanModCons.wsCA = player.CharacterAdded:Connect(function(nChar)
+                Char, Human = nChar, nChar:WaitForChild("Humanoid")
+                WalkSpeedChange()
+                HumanModCons.wsLoop = Human:GetPropertyChangedSignal("WalkSpeed"):Connect(WalkSpeedChange)
+            end)
+        end
+    end
+    
+    Tabs.Misc:AddToggle("WalkSpeedToggle", {
+        Title = "WalkSpeed (50)",
+        Default = false,
+        Callback = function(value)
+            if value then
+                setWalkSpeed(50)
+            else
+                setWalkSpeed(16)
+                if HumanModCons.wsLoop then
+                    HumanModCons.wsLoop:Disconnect()
+                    HumanModCons.wsLoop = nil
+                end
+                if HumanModCons.wsCA then
+                    HumanModCons.wsCA:Disconnect()
+                    HumanModCons.wsCA = nil
+                end
+            end
+        end
+    })
+
+    -- Noclip
+    local noclipToggle = false
+    
+    RunService.Stepped:Connect(function()
+        if noclipToggle and player.Character then
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") and part.CanCollide == true then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+    
+    Tabs.Misc:AddToggle("NoclipToggle", {
+        Title = "Noclip",
+        Default = false,
+        Callback = function(value)
+            noclipToggle = value
+        end
+    })
+
+    -- Infinite Jump
+    local infiniteJumpToggle = false
+    local jumpConnection
+    
+    Tabs.Misc:AddToggle("InfiniteJumpToggle", {
+        Title = "Infinite Jump",
+        Default = false,
+        Callback = function(value)
+            infiniteJumpToggle = value
+            if value then
+                jumpConnection = UserInputService.JumpRequest:Connect(function()
+                    if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+                        player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+                    end
+                end)
+            else
+                if jumpConnection then
+                    jumpConnection:Disconnect()
+                    jumpConnection = nil
+                end
+            end
+        end
+    })
+
+    -- God Mode
+    local godModeToggle = false
+    local godConnections = {}
+    local godHeartbeat
+    
+    local function enableGodMode()
+        local function apply(character)
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if not humanoid then return end
+            
+            humanoid.BreakJointsOnDeath = false
+            humanoid.RequiresNeck = false
+            
+            for _, connection in ipairs(getconnections(humanoid.Died)) do 
+                connection:Disable() 
+                table.insert(godConnections, connection) 
+            end
+            
+            table.insert(godConnections, humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+                if humanoid.Health < humanoid.MaxHealth then 
+                    humanoid.Health = humanoid.MaxHealth 
+                end
+            end))
+            
+            godHeartbeat = RunService.Heartbeat:Connect(function()
+                if humanoid and humanoid.Health < humanoid.MaxHealth then 
+                    humanoid.Health = humanoid.MaxHealth 
+                end
+            end)
+        end
+        
+        apply(player.Character or player.CharacterAdded:Wait())
+        table.insert(godConnections, player.CharacterAdded:Connect(function(character) 
+            task.wait(0.5) 
+            apply(character) 
+        end))
+    end
+    
+    local function disableGodMode()
+        for _, connection in ipairs(godConnections) do
+            if typeof(connection) == "RBXScriptConnection" then 
+                connection:Disconnect() 
+            end
+        end
+        godConnections = {}
+        
+        if godHeartbeat then 
+            godHeartbeat:Disconnect() 
+            godHeartbeat = nil 
+        end
+        
+        local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.BreakJointsOnDeath = true
+            humanoid.RequiresNeck = true
+        end
+    end
+    
+    Tabs.Misc:AddToggle("GodModeToggle", {
+        Title = "God Mode",
+        Default = false,
+        Callback = function(value)
+            godModeToggle = value
+            if value then
+                enableGodMode()
+            else
+                disableGodMode()
+            end
+        end
+    })
+    
+-- Visuals Tab
+do
+    local ESPEnabled = false
+    local espFolder = Instance.new("Folder", game:GetService("CoreGui"))
+    espFolder.Name = "ESPFolder"
+
+    local function createESPBox(player)
+        local box = Instance.new("BoxHandleAdornment")
+        box.Name = "ESPBox"
+        box.Adornee = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        box.AlwaysOnTop = true
+        box.ZIndex = 10
+        box.Size = Vector3.new(4, 6, 1)
+        box.Color3 = Color3.new(1, 1, 1)
+        box.Transparency = 0.5
+        box.Parent = espFolder
+
+        local nameTag = Instance.new("BillboardGui")
+        nameTag.Adornee = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        nameTag.Size = UDim2.new(0, 100, 0, 40)
+        nameTag.AlwaysOnTop = true
+        nameTag.Parent = espFolder
+        nameTag.Name = "ESPNameTag"
+
+        local label = Instance.new("TextLabel")
+        label.BackgroundTransparency = 1
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = 16
+        label.TextColor3 = Color3.new(1,1,1)
+        label.TextStrokeTransparency = 0.5
+        label.Text = player.DisplayName
+        label.Parent = nameTag
+        return box, nameTag
+    end
+
+    local function removeESP(player)
+        for _, child in pairs(espFolder:GetChildren()) do
+            if child:IsA("BoxHandleAdornment") or child:IsA("BillboardGui") then
+                if child.Name == "ESPBox" or child.Name == "ESPNameTag" then
+                    if child.Adornee and child.Adornee.Parent == player.Character then
+                        child:Destroy()
+                    end
+                end
+            end
+        end
+    end
+
+    local function updateESP()
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChildOfClass("Humanoid") and p.Character:FindFirstChildOfClass("Humanoid").Health > 0 then
+                local hasBox = false
+                for _, child in pairs(espFolder:GetChildren()) do
+                    if child:IsA("BoxHandleAdornment") and child.Adornee == p.Character.HumanoidRootPart then
+                        hasBox = true
+                    end
+                end
+                if not hasBox then
+                    createESPBox(p)
+                end
+            else
+                removeESP(p)
+            end
+        end
+    end
+
+    Tabs.Visuals:AddToggle("ESPToggle", {
+        Title = "ESP",
+        Default = false,
+        Callback = function(value)
+            ESPEnabled = value
+            if not ESPEnabled then
+                for _, child in pairs(espFolder:GetChildren()) do
+                    child:Destroy()
+                end
+            end
+        end
+    })
+
+    RunService.Heartbeat:Connect(function()
+        if ESPEnabled then
+            updateESP()
+        end
+    end)
+end
+
+-- Addons
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+
+InterfaceManager:SetFolder("ArbixHub")
+SaveManager:SetFolder("ArbixHub/" .. game.PlaceId)
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Arbix Hub",
+    Content = "Script loaded successfully!",
+    Duration = 8
+})
+
+SaveManager:LoadAutoloadConfig()
